@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Analyzer</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+        }
+
+        .section {
+            border: 1px solid #333;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            background: #222;
+        }
+
+        h2 {
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+            color: #fff;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            border-bottom: 1px dotted #333;
+        }
+
+        .label {
+            color: #aaa;
+        }
+
+        .value {
+            color: #00ff00;
+            font-weight: bold;
+            word-break: break-all;
+            text-align: right;
+            margin-left: 10px;
+        }
+
+        .warning {
+            color: #ff4444;
+        }
+
+        p {
+            color: #ccc;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Privacy Analyzer</h1>
+    <p>See what data is exposed from your browser.</p>
+
+    <div class="section">
+        <h2>1. Network & Request Headers (Server-Side)</h2>
+        <div class="data-row"><span class="label">Public IP Address:</span> <span class="value">{{ ip }}</span></div>
+        <div class="data-row"><span class="label">User-Agent:</span> <span class="value">{{ headers['User-Agent']
+                }}</span></div>
+        <div class="data-row"><span class="label">Platform (OS):</span> <span class="value">{{
+                headers['Sec-Ch-Ua-Platform'] }}</span></div>
+        <div class="data-row"><span class="label">Referrer:</span> <span class="value">{{ headers['Referer'] }}</span>
+        </div>
+        <div class="data-row"><span class="label">Do Not Track (DNT):</span> <span class="value">{{ dnt }}</span></div>
+        <div class="data-row"><span class="label">Host:</span> <span class="value">{{ headers['Host'] }}</span></div>
+        <div class="data-row"><span class="label">Connection:</span> <span class="value">{{ headers['Connection']
+                }}</span></div>
+        <div class="data-row"><span class="label">Accept-Language:</span> <span class="value">{{
+                headers['Accept-Language'] }}</span></div>
+        <div class="data-row"><span class="label">Sec-Ch-Ua:</span> <span class="value">{{ headers['Sec-Ch-Ua']
+                }}</span></div>
+    </div>
+
+    <div class="section">
+        <h2>2. Browser Fingerprint (Client-Side)</h2>
+        <div class="data-row"><span class="label">Screen Resolution:</span> <span class="value"
+                id="screenRes">Calculating...</span></div>
+        <div class="data-row"><span class="label">Color Depth:</span> <span class="value"
+                id="colorDepth">Calculating...</span></div>
+        <div class="data-row"><span class="label">Browser Language:</span> <span class="value"
+                id="lang">Calculating...</span></div>
+        <div class="data-row"><span class="label">Timezone:</span> <span class="value"
+                id="timezone">Calculating...</span></div>
+        <div class="data-row"><span class="label">Cookies Enabled:</span> <span class="value"
+                id="cookies">Calculating...</span></div>
+        <div class="data-row"><span class="label">Date & Time:</span> <span class="value"
+                id="dateTime">Calculating...</span></div>
+    </div>
+
+    <div class="section">
+        <h2>3. WebGL Hardware (Hardware Leaks)</h2>
+        <p style="font-size: 0.8em; color: #888;">Websites use this to identify your exact GPU model, which helps create
+            a unique ID for you.</p>
+        <div class="data-row"><span class="label">WebGL Vendor:</span> <span class="value" id="webglVendor">Not
+                Detected</span></div>
+        <div class="data-row"><span class="label">WebGL Renderer:</span> <span class="value" id="webglRenderer">Not
+                Detected</span></div>
+    </div>
+
+    <footer style="margin-top: 50px; font-size: 0.8em; color: #888; border-top: 1px solid #333; padding-top: 10px;">
+        <p><strong>Privacy Notice:</strong> This tool runs entirely in your browser and on our volatile server memory.
+        </p>
+        <ul>
+            <li>We <strong>do not</strong> use cookies.</li>
+            <li>We <strong>do not</strong> save, log, or store your IP address or fingerprint.</li>
+            <li>All data shown here is reflected back to you and immediately discarded after the request.</li>
+        </ul>
+    </footer>
+
+    <script>
+        // 1. Basic Screen & Browser Info
+        document.getElementById('screenRes').innerText = window.screen.width + "x" + window.screen.height;
+        document.getElementById('colorDepth').innerText = window.screen.colorDepth + "-bit";
+        document.getElementById('lang').innerText = navigator.language;
+        document.getElementById('timezone').innerText = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        document.getElementById('cookies').innerText = navigator.cookieEnabled ? "Yes" : "No";
+        document.getElementById('dateTime').innerText = new Date().toLocaleString();
+
+        // 2. WebGL Fingerprinting Logic
+        try {
+            var canvas = document.createElement('canvas');
+            var gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            if (gl) {
+                var debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                if (debugInfo) {
+                    var vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                    var renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                    document.getElementById('webglVendor').innerText = vendor;
+                    document.getElementById('webglRenderer').innerText = renderer;
+                }
+            }
+        } catch (e) {
+            console.log("WebGL detection failed", e);
+        }
+    </script>
+
+</body>
+
+</html>
